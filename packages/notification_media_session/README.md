@@ -3,7 +3,8 @@
 A cross-platform Flutter bridge that synchronizes your app's playback state with system media sessions, notification cards, and lock-screen controls.
 
 - 📱 **Android**: Full support for Android Media Notification, lock screen controls, and Android 13+ media card actions (including custom native actions like favorite/repeat).
-- 💻 **Windows**: Integrates with Windows System Media Transport Controls (SMTC) for native volume overlay and taskbar controls.
+- 💻 **Windows Desktop**: Integrates with Windows System Media Transport Controls (SMTC) for native volume overlay and taskbar controls.
+- 🌐 **Web (Browser & Windows SMTC)**: Supports the W3C Media Session API (`navigator.mediaSession`), seamlessly connecting with browser media controls and Windows SMTC / lock-screen cards on desktop browsers (Edge, Chrome).
 - 🎯 **Clean Architecture**: Decoupled from any specific player library through the Gateway & Snapshot pattern.
 - 🎨 **Customizable & Built-in Resources**: Default vector drawables are pre-bundled, and buttons/actions are fully customizable.
 
@@ -15,7 +16,7 @@ Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  notification_media_session: ^0.2.0
+  notification_media_session: ^0.2.2
 ```
 
 ---
@@ -91,6 +92,19 @@ Future<void> requestNotificationPermission() async {
   }
 }
 ```
+
+### Web Setup & Windows SMTC Integration
+
+**Zero configuration required** for Flutter Web!
+
+When running on the Web:
+- The package leverages the W3C **Media Session API** (`navigator.mediaSession`) under the hood.
+- When running in modern desktop browsers (e.g., Google Chrome, Microsoft Edge on Windows 10/11), the browser automatically hooks into **Windows SMTC (System Media Transport Controls)**.
+- This allows web playback to display the native Windows volume overlay media card, lock-screen controls, hardware media keys, and browser global media controls with album artwork and track metadata.
+
+### Windows Desktop Setup
+
+No additional manifest or XML configuration is required on Windows Desktop. The C++/WinRT plugin communicates directly with Windows SMTC.
 
 ---
 
