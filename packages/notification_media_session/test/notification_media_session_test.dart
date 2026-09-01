@@ -118,13 +118,16 @@ void main() {
         const Duration(seconds: 90),
       );
 
-      // Default controls: favorite (favorited), skipPrevious, pause, skipNext
+      // Default controls: spaced 3-button layout [skipPrevious, spacer, pause, spacer, skipNext]
       final controls = handler.playbackState.value.controls;
-      expect(controls.length, 4);
-      expect(controls[0].androidIcon, 'drawable/ic_notification_favorite');
-      expect(controls[1].action, MediaAction.skipToPrevious);
+      expect(controls.length, 5);
+      expect(controls[0].action, MediaAction.skipToPrevious);
+      expect(controls[1].customAction?.name, 'noop_spacer');
       expect(controls[2].androidIcon, 'drawable/ic_notif_pause_outline');
-      expect(controls[3].action, MediaAction.skipToNext);
+      expect(controls[3].customAction?.name, 'noop_spacer');
+      expect(controls[4].action, MediaAction.skipToNext);
+      // Compact indices automatically extract non-spacers: [0, 2, 4]
+      expect(handler.playbackState.value.androidCompactActionIndices, [0, 2, 4]);
     });
 
     test('delegates custom toggle_favorite action to changeLike', () async {
@@ -133,6 +136,109 @@ void main() {
       );
       expect(result, isTrue);
       expect(gateway.changeLikeCalled, isTrue);
+    });
+
+    test('handles noop_spacer action gracefully', () async {
+      final result = await handler.customAction(
+        NotificationControls.noopSpacerAction,
+      );
+      expect(result, isTrue);
+    });
+
+    test('favoriteControls provides standard 4-button layout with favorite', () async {
+      final favoriteHandler = NotificationAudioHandler(
+        gateway,
+        config: const NotificationMediaSessionConfig(
+          androidNotificationChannelId: 'test_ch',
+          androidNotificationChannelName: 'Test Channel',
+          controlsBuilder: NotificationControls.favoriteControls,
+        ),
+      );
+
+      gateway.emit(
+        const NotificationPlaybackSnapshot(
+          track: NotificationTrack(id: '1', title: 'Song 1', duration: Duration(seconds: 180)),
+          phase: NotificationPlaybackPhase.ready,
+          isPlaying: true,
+          isFavorite: true,
+        ),
+      );
+      await pumpEventQueue();
+
+      final state = favoriteHandler.playbackState.value;
+      expect(state.controls.length, 4);
+      expect(state.controls[0].androidIcon, 'drawable/ic_notification_favorite');
+      expect(state.controls[1].action, MediaAction.skipToPrevious);
+      expect(state.controls[2].androidIcon, 'drawable/ic_notif_pause_outline');
+      expect(state.controls[3].action, MediaAction.skipToNext);
+
+      await favoriteHandler.stop();
+    });
+
+    test('spacedControls spreads 3 buttons across 5 slots and filters compact indices', () async {
+      final spacedHandler = NotificationAudioHandler(
+        gateway,
+        config: const NotificationMediaSessionConfig(
+          androidNotificationChannelId: 'test_ch',
+          androidNotificationChannelName: 'Test Channel',
+          controlsBuilder: NotificationControls.spacedControls,
+        ),
+      );
+
+      gateway.emit(
+        const NotificationPlaybackSnapshot(
+          track: null,
+          phase: NotificationPlaybackPhase.ready,
+          isPlaying: true,
+        ),
+      );
+      await pumpEventQueue();
+
+      final state = spacedHandler.playbackState.value;
+      expect(state.controls.length, 5);
+      expect(state.controls[0].action, MediaAction.skipToPrevious);
+      expect(state.controls[1].customAction?.name, 'noop_spacer');
+      expect(state.controls[2].androidIcon, 'drawable/ic_notif_pause_outline');
+      expect(state.controls[3].customAction?.name, 'noop_spacer');
+      expect(state.controls[4].action, MediaAction.skipToNext);
+
+      // Spacers (indices 1, 3) must be filtered out from compact indices
+      expect(state.androidCompactActionIndices, [0, 2, 4]);
+
+      await spacedHandler.stop();
+    });
+
+    test('centeredControls centers 3 buttons in slots 2,3,4 and filters compact indices', () async {
+      final centeredHandler = NotificationAudioHandler(
+        gateway,
+        config: const NotificationMediaSessionConfig(
+          androidNotificationChannelId: 'test_ch',
+          androidNotificationChannelName: 'Test Channel',
+          controlsBuilder: NotificationControls.centeredControls,
+        ),
+      );
+
+      gateway.emit(
+        const NotificationPlaybackSnapshot(
+          track: null,
+          phase: NotificationPlaybackPhase.ready,
+          isPlaying: false,
+        ),
+      );
+      await pumpEventQueue();
+
+      final state = centeredHandler.playbackState.value;
+      expect(state.controls.length, 5);
+      expect(state.controls[0].customAction?.name, 'noop_spacer');
+      expect(state.controls[1].action, MediaAction.skipToPrevious);
+      expect(state.controls[2].androidIcon, 'drawable/ic_notif_play_outline');
+      expect(state.controls[3].action, MediaAction.skipToNext);
+      expect(state.controls[4].customAction?.name, 'noop_spacer');
+
+      // Spacers (indices 0, 4) filtered out from compact indices
+      expect(state.androidCompactActionIndices, [1, 2, 3]);
+
+      await centeredHandler.stop();
     });
 
     test('delegates other custom actions to gateway.onCustomAction', () async {

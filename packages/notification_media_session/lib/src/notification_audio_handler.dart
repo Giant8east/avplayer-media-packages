@@ -73,6 +73,9 @@ class NotificationAudioHandler extends BaseAudioHandler {
     String name, [
     Map<String, dynamic>? extras,
   ]) async {
+    if (name == NotificationControls.noopSpacerAction) {
+      return true;
+    }
     if (name == NotificationControls.toggleFavoriteAction) {
       await _gateway.changeLike();
       return true;
@@ -107,9 +110,14 @@ class NotificationAudioHandler extends BaseAudioHandler {
           MediaAction.seekBackward,
         };
 
+    final compactIndices = _config.androidCompactActionIndicesBuilder
+            ?.call(snapshot, controls) ??
+        _defaultCompactIndices(controls);
+
     playbackState.add(
       PlaybackState(
         controls: controls,
+        androidCompactActionIndices: compactIndices,
         systemActions: systemActions,
         processingState: _toAudioProcessingState(snapshot.phase),
         playing: snapshot.isPlaying,
@@ -118,6 +126,26 @@ class NotificationAudioHandler extends BaseAudioHandler {
         speed: snapshot.speed,
       ),
     );
+  }
+
+  /// Calculates compact action indices by filtering out placeholder spacers.
+  List<int> _defaultCompactIndices(List<MediaControl> controls) {
+    final nonSpacerIndices = <int>[];
+    for (var i = 0; i < controls.length; i++) {
+      final control = controls[i];
+      final isSpacer = control.androidIcon == 'drawable/ic_notif_spacer' ||
+          control.customAction?.name == NotificationControls.noopSpacerAction;
+      if (!isSpacer) {
+        nonSpacerIndices.add(i);
+      }
+    }
+    if (nonSpacerIndices.isEmpty) {
+      return List.generate(
+        controls.length > 3 ? 3 : controls.length,
+        (i) => i,
+      );
+    }
+    return nonSpacerIndices.take(3).toList();
   }
 
   /// Updates platform metadata, including artwork and authenticated artwork headers.

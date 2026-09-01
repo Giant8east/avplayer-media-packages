@@ -1,3 +1,7 @@
+## 0.18.19+3
+
+* Bundle transparent placeholder drawable resource (`ic_notif_spacer`) directly in the Android library package to support 5-slot balanced notification layouts.
+
 ## 0.18.19+2
 
 * Bundle default media notification drawable resources (`ic_notification_favorite`, `ic_notification_favorite_border`, `ic_notif_prev_outline`, `ic_notif_play_outline`, `ic_notif_pause_outline`, `ic_notif_next_outline`, `ic_notif_placeholder`, `ic_default_artwork`) directly in the Android library package.

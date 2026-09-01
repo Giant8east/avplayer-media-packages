@@ -8,6 +8,17 @@ class NotificationControls {
   /// Action name for toggling favorite state.
   static const String toggleFavoriteAction = 'toggle_favorite';
 
+  /// Action name for transparent placeholder spacers.
+  static const String noopSpacerAction = 'noop_spacer';
+
+  /// Predefined transparent spacer control to balance 5-slot Android notification layouts.
+  static final MediaControl spacer = MediaControl.custom(
+    androidIcon: 'drawable/ic_notif_spacer',
+    label: '',
+    name: noopSpacerAction,
+    extras: const {'androidNativeNotificationAction': true},
+  );
+
   /// Predefined Android custom action that removes the active track from favorites.
   static final MediaControl favorite = MediaControl.custom(
     androidIcon: 'drawable/ic_notification_favorite',
@@ -100,9 +111,16 @@ class NotificationControls {
         },
       );
 
-  /// Default notification controls generator matching the standard player layout with favorites:
-  /// `[Favorite, Previous, Play/Pause, Next]`.
+  /// Default notification controls generator when no custom controls are specified:
+  /// `[Previous, Spacer, Play/Pause, Spacer, Next]` (spaced 3-button 5-slot layout).
   static List<MediaControl> defaultControls(
+    NotificationPlaybackSnapshot snapshot,
+  ) =>
+      spacedControls(snapshot);
+
+  /// 4-button player controls generator with favorite action:
+  /// `[Favorite, Previous, Play/Pause, Next]`.
+  static List<MediaControl> favoriteControls(
     NotificationPlaybackSnapshot snapshot,
   ) => [
     snapshot.isFavorite ? favorite : favoriteBorder,
@@ -119,5 +137,35 @@ class NotificationControls {
     skipPrevious,
     snapshot.isPlaying ? pause : play,
     skipNext,
+  ];
+
+  /// 5-slot evenly-spaced 3-button controls generator:
+  /// `[Previous, Spacer, Play/Pause, Spacer, Next]`.
+  ///
+  /// Distributes previous, play/pause, and next across the 5 slots of the Android
+  /// media notification (slots 1, 3, 5), keeping the buttons balanced and centered.
+  static List<MediaControl> spacedControls(
+    NotificationPlaybackSnapshot snapshot,
+  ) => [
+    skipPrevious,
+    spacer,
+    snapshot.isPlaying ? pause : play,
+    spacer,
+    skipNext,
+  ];
+
+  /// 5-slot centered 3-button controls generator with margins:
+  /// `[Spacer, Previous, Play/Pause, Next, Spacer]`.
+  ///
+  /// Centers previous, play/pause, and next in slots 2, 3, 4 of the Android
+  /// media notification.
+  static List<MediaControl> centeredControls(
+    NotificationPlaybackSnapshot snapshot,
+  ) => [
+    spacer,
+    skipPrevious,
+    snapshot.isPlaying ? pause : play,
+    skipNext,
+    spacer,
   ];
 }

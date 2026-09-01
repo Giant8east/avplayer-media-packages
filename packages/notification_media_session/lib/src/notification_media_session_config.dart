@@ -19,14 +19,22 @@ typedef NotificationCustomActionCallback = Future<dynamic> Function(
   Map<String, dynamic>? extras,
 );
 
+/// Builder function returning the list of compact action indices for Android notification view.
+typedef NotificationCompactActionIndicesBuilder = List<int>? Function(
+  NotificationPlaybackSnapshot snapshot,
+  List<MediaControl> controls,
+);
+
 /// Host-owned configuration used to initialize the platform media session.
 class NotificationMediaSessionConfig {
   const NotificationMediaSessionConfig({
     required this.androidNotificationChannelId,
     required this.androidNotificationChannelName,
     this.androidStopForegroundOnPause = false,
+    this.androidNotificationIcon,
     this.controlsBuilder,
     this.systemActionsBuilder,
+    this.androidCompactActionIndicesBuilder,
     this.onCustomAction,
   });
 
@@ -39,6 +47,9 @@ class NotificationMediaSessionConfig {
   /// Whether Android should stop the foreground service when playback pauses.
   final bool androidStopForegroundOnPause;
 
+  /// Small notification status bar icon on Android (defaults to app launcher icon).
+  final String? androidNotificationIcon;
+
   /// Optional custom builder for notification controls.
   ///
   /// If omitted, defaults to [NotificationControls.defaultControls].
@@ -48,6 +59,12 @@ class NotificationMediaSessionConfig {
   ///
   /// If omitted, defaults to `{MediaAction.seek, MediaAction.seekForward, MediaAction.seekBackward}`.
   final NotificationSystemActionsBuilder? systemActionsBuilder;
+
+  /// Optional custom builder for compact notification action indices on Android.
+  ///
+  /// If omitted, transparent spacer controls are automatically filtered out.
+  final NotificationCompactActionIndicesBuilder?
+      androidCompactActionIndicesBuilder;
 
   /// Optional handler callback for custom actions.
   ///
@@ -59,5 +76,7 @@ class NotificationMediaSessionConfig {
     androidNotificationChannelId: androidNotificationChannelId,
     androidNotificationChannelName: androidNotificationChannelName,
     androidStopForegroundOnPause: androidStopForegroundOnPause,
+    androidNotificationIcon:
+        androidNotificationIcon ?? 'mipmap/ic_launcher',
   );
 }

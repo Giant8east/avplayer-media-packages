@@ -1,3 +1,11 @@
+## 0.2.2
+
+* Set `spacedControls` (`[Previous, Spacer, Play/Pause, Spacer, Next]`) as the default controls layout when `controlsBuilder` is omitted to fill the 5-slot Android notification grid evenly.
+* Add `NotificationControls.spacer` transparent placeholder control and `NotificationControls.noopSpacerAction`.
+* Add `NotificationControls.spacedControls` and `NotificationControls.centeredControls` layout generators.
+* Automatically filter transparent spacer controls from `androidCompactActionIndices` so Android compact view cleanly shows the 3 active playback buttons.
+* Add `NotificationControls.favoriteControls` for 4-button favorite-enabled layouts.
+
 ## 0.2.1
 
 * Make `isFavorite` optional in `NotificationPlaybackSnapshot` (defaults to `false`).

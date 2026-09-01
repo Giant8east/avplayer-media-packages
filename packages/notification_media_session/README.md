@@ -199,7 +199,7 @@ void main() async {
 
 ## 4. Customizing Media Card Buttons & Actions
 
-By default, the notification card displays: `[Favorite, Previous, Play/Pause, Next]`.
+By default, the notification card displays the balanced 5-slot spaced layout: `[Previous, Spacer, Play/Pause, Spacer, Next]`.
 
 You can customize the button layout, add new Android icons, and handle custom actions by specifying `controlsBuilder` and `onCustomAction` in `NotificationMediaSessionConfig`.
 
@@ -235,7 +235,7 @@ final handler = await initializeNotificationMediaSession(
 );
 ```
 
-### Pre-built `NotificationControls`
+### Pre-built Controls & Layout Generators
 
 The package provides standard controls ready to use:
 - `NotificationControls.favorite` & `NotificationControls.favoriteBorder`
@@ -243,7 +243,18 @@ The package provides standard controls ready to use:
 - `NotificationControls.play` & `NotificationControls.pause`
 - `NotificationControls.stop`
 - `NotificationControls.rewind` & `NotificationControls.fastForward`
+- `NotificationControls.spacer` (Transparent placeholder icon `drawable/ic_notif_spacer` used to balance Android 5-slot layouts)
 - `NotificationControls.custom(...)` (Factory to construct custom action buttons with native Android 13+ support)
+
+#### Built-in Layout Generators:
+- `NotificationControls.defaultControls`: `[Previous, Spacer, Play/Pause, Spacer, Next]` (**Default layout** when `controlsBuilder` is omitted; evenly distributes the 3 buttons across all 5 slots on Android).
+- `NotificationControls.spacedControls`: `[Previous, Spacer, Play/Pause, Spacer, Next]` (Alias for `defaultControls`; spreads buttons across slots 1, 3, 5).
+- `NotificationControls.centeredControls`: `[Spacer, Previous, Play/Pause, Next, Spacer]` (Centers the 3 buttons in slots 2, 3, 4 with left/right transparent margins).
+- `NotificationControls.favoriteControls`: `[Favorite, Previous, Play/Pause, Next]` (4-button player layout with favorite button).
+- `NotificationControls.standardControls`: `[Previous, Play/Pause, Next]` (Classic left-aligned 3-button layout without favorite or spacers).
+
+> **Note on Android Compact (Collapsed) View:**
+> When using `spacedControls` or `centeredControls`, the package automatically excludes `spacer` placeholders from `androidCompactActionIndices`, ensuring the collapsed notification cleanly displays only the 3 actual playback buttons `[Previous, Play/Pause, Next]`.
 
 ---
 

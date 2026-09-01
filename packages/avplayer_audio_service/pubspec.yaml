@@ -1,6 +1,6 @@
 name: avplayer_audio_service
 description: A customized audio_service fork with native Android notification custom-action support.
-version: 0.18.19+2
+version: 0.18.19+3
 homepage: https://github.com/Giant8east/avplayer-media-packages/tree/main/packages/avplayer_audio_service
 repository: https://github.com/Giant8east/avplayer-media-packages
 issue_tracker: https://github.com/Giant8east/avplayer-media-packages/issues
