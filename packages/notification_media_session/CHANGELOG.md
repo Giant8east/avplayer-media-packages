@@ -1,3 +1,7 @@
+## 0.1.2
+
+* Require `avplayer_audio_service_win` 0.0.3+3 or later to include the renamed public Windows C API header directory.
+
 ## 0.1.1
 
 * Require `avplayer_audio_service_win` 0.0.3+2 or later to include the renamed Windows CMake plugin target fix.
