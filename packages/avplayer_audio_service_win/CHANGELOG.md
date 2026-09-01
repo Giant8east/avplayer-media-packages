@@ -1,3 +1,7 @@
+## 0.0.3+2
+
+* Fix the Windows CMake plugin target name after publishing the package as `avplayer_audio_service_win`.
+
 ## 0.0.3+1
 
 * First AVPlayer fork release based on upstream `audio_service_win` 0.0.3.
