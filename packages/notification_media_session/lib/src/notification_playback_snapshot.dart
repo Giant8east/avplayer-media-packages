@@ -7,7 +7,7 @@ class NotificationPlaybackSnapshot {
     required this.track,
     required this.phase,
     required this.isPlaying,
-    required this.isFavorite,
+    this.isFavorite = false,
     this.position = Duration.zero,
     this.bufferedPosition = Duration.zero,
     this.speed = 1.0,
@@ -23,6 +23,7 @@ class NotificationPlaybackSnapshot {
   final bool isPlaying;
 
   /// Whether the active track is marked as a favorite by the host application.
+  /// Defaults to `false` if the host app does not use favorite functionality.
   final bool isFavorite;
 
   /// Current playback position.

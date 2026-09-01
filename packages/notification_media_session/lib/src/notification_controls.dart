@@ -100,12 +100,22 @@ class NotificationControls {
         },
       );
 
-  /// Default notification controls generator matching the standard player layout:
+  /// Default notification controls generator matching the standard player layout with favorites:
   /// `[Favorite, Previous, Play/Pause, Next]`.
   static List<MediaControl> defaultControls(
     NotificationPlaybackSnapshot snapshot,
   ) => [
     snapshot.isFavorite ? favorite : favoriteBorder,
+    skipPrevious,
+    snapshot.isPlaying ? pause : play,
+    skipNext,
+  ];
+
+  /// Standard notification controls generator without favorite action:
+  /// `[Previous, Play/Pause, Next]`.
+  static List<MediaControl> standardControls(
+    NotificationPlaybackSnapshot snapshot,
+  ) => [
     skipPrevious,
     snapshot.isPlaying ? pause : play,
     skipNext,

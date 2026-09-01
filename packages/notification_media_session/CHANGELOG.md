@@ -1,3 +1,9 @@
+## 0.2.1
+
+* Make `isFavorite` optional in `NotificationPlaybackSnapshot` (defaults to `false`).
+* Provide a default no-op implementation for `changeLike()` in `NotificationPlaybackGateway`.
+* Add `NotificationControls.standardControls(snapshot)` for players that do not need a favorite action (`[Previous, Play/Pause, Next]`).
+
 ## 0.2.0
 
 * Add customizable controls support via `NotificationControlsBuilder` and `NotificationSystemActionsBuilder` in `NotificationMediaSessionConfig`.

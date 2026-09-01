@@ -28,7 +28,9 @@ abstract class NotificationPlaybackGateway {
   Future<void> seek(Duration position);
 
   /// Toggles the favorite state of the active item.
-  Future<void> changeLike();
+  ///
+  /// Defaults to a no-op if the host application does not support favorites.
+  Future<void> changeLike() async {}
 
   /// Stops playback and clears host-managed playback state as appropriate.
   Future<void> stop();
