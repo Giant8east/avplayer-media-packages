@@ -213,11 +213,42 @@ void main() async {
 
 ## 4. Customizing Media Card Buttons & Actions
 
-By default, the notification card displays the balanced 5-slot spaced layout: `[Previous, Spacer, Play/Pause, Spacer, Next]`.
+### Button Slot Ordering (Left-to-Right)
+On Android and desktop media cards (which typically feature up to 5 action slots), **the physical order of buttons from left to right strictly matches the order of elements in the `controlsBuilder` list**:
+- Slot 1 (leftmost): `list[0]`
+- Slot 2: `list[1]`
+- Slot 3 (center): `list[2]`
+- Slot 4: `list[3]`
+- Slot 5 (rightmost): `list[4]`
 
-You can customize the button layout, add new Android icons, and handle custom actions by specifying `controlsBuilder` and `onCustomAction` in `NotificationMediaSessionConfig`.
+You can freely reorder, swap, or insert any built-in controls or custom actions by arranging the list returned from `controlsBuilder`.
 
-### Example: Custom Controls with Rewind, Fast Forward, and Custom Repeat Action
+---
+
+### Example 1: Custom Button Order (e.g. Play/Pause -> Favorite -> Next -> Previous)
+
+```dart
+final handler = await initializeNotificationMediaSession(
+  gateway,
+  config: NotificationMediaSessionConfig(
+    androidNotificationChannelId: 'com.example.app.playback',
+    androidNotificationChannelName: 'Media Playback',
+    // Custom button order: Play/Pause, Favorite, Next, Previous
+    controlsBuilder: (snapshot) => [
+      // 1. Play / Pause
+      snapshot.isPlaying ? NotificationControls.pause : NotificationControls.play,
+      // 2. Favorite / Unfavorite (dynamically switches filled / outline heart)
+      snapshot.isFavorite ? NotificationControls.favorite : NotificationControls.favoriteBorder,
+      // 3. Next track
+      NotificationControls.skipNext,
+      // 4. Previous track
+      NotificationControls.skipPrevious,
+    ],
+  ),
+);
+```
+
+### Example 2: Custom Controls with Rewind, Fast Forward, and Custom Repeat Action
 
 ```dart
 final handler = await initializeNotificationMediaSession(
