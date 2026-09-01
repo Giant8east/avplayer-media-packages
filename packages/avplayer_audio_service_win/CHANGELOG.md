@@ -1,3 +1,7 @@
+## 0.0.3+3
+
+* Rename the exported Windows C API header directory to match the published package name.
+
 ## 0.0.3+2
 
 * Fix the Windows CMake plugin target name after publishing the package as `avplayer_audio_service_win`.

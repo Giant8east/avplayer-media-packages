@@ -25,7 +25,7 @@ list(APPEND PLUGIN_SOURCES
 # Define the plugin library target. Its name must not be changed (see comment
 # on PLUGIN_NAME above).
 add_library(${PLUGIN_NAME} SHARED
-  "include/audio_service_win/audio_service_win_plugin_c_api.h"
+  "include/avplayer_audio_service_win/audio_service_win_plugin_c_api.h"
   "audio_service_win_plugin_c_api.cpp"
   ${PLUGIN_SOURCES}
 )

@@ -1,4 +1,4 @@
-#include "include/audio_service_win/audio_service_win_plugin_c_api.h"
+#include "include/avplayer_audio_service_win/audio_service_win_plugin_c_api.h"
 
 #include <flutter/plugin_registrar_windows.h>
 
