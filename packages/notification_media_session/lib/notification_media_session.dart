@@ -6,7 +6,10 @@ import 'src/notification_audio_handler.dart';
 import 'src/notification_media_session_config.dart';
 import 'src/notification_playback_gateway.dart';
 
+export 'package:avplayer_audio_service/avplayer_audio_service.dart'
+    show MediaAction, MediaButton, MediaControl;
 export 'src/notification_audio_handler.dart';
+export 'src/notification_controls.dart';
 export 'src/notification_media_session_config.dart';
 export 'src/notification_permission_gateway.dart';
 export 'src/notification_playback_gateway.dart';
@@ -26,7 +29,7 @@ Future<NotificationAudioHandler> initializeNotificationMediaSession(
   }
 
   final handler = await AudioService.init(
-    builder: () => NotificationAudioHandler(gateway),
+    builder: () => NotificationAudioHandler(gateway, config: config),
     config: config.toAudioServiceConfig(),
   );
   await handler.synchronize();

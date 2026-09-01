@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:avplayer_audio_service/avplayer_audio_service.dart';
 
+import 'notification_controls.dart';
+import 'notification_media_session_config.dart';
 import 'notification_playback_gateway.dart';
 import 'notification_playback_snapshot.dart';
 
@@ -11,13 +13,21 @@ import 'notification_playback_snapshot.dart';
 /// each update to platform media controls, and delegates platform commands back
 /// to the host application through the gateway.
 class NotificationAudioHandler extends BaseAudioHandler {
-  NotificationAudioHandler(this._gateway) {
+  NotificationAudioHandler(
+    this._gateway, {
+    NotificationMediaSessionConfig? config,
+  }) : _config = config ??
+            const NotificationMediaSessionConfig(
+              androidNotificationChannelId: 'default',
+              androidNotificationChannelName: 'Playback',
+            ) {
     _snapshotSubscription = _gateway.snapshots.listen(_publishSnapshot);
   }
 
   final NotificationPlaybackGateway _gateway;
+  final NotificationMediaSessionConfig _config;
   late final StreamSubscription<NotificationPlaybackSnapshot>
-  _snapshotSubscription;
+      _snapshotSubscription;
 
   /// Publishes the latest host snapshot immediately after initialization.
   Future<void> synchronize() async {
@@ -63,10 +73,16 @@ class NotificationAudioHandler extends BaseAudioHandler {
     String name, [
     Map<String, dynamic>? extras,
   ]) async {
-    if (name == _toggleFavoriteAction) {
+    if (name == NotificationControls.toggleFavoriteAction) {
       await _gateway.changeLike();
       return true;
     }
+    if (_config.onCustomAction != null) {
+      final result = await _config.onCustomAction!(name, extras);
+      if (result != null) return result;
+    }
+    final gatewayResult = await _gateway.onCustomAction(name, extras);
+    if (gatewayResult != null) return gatewayResult;
     return super.customAction(name, extras);
   }
 
@@ -77,60 +93,24 @@ class NotificationAudioHandler extends BaseAudioHandler {
     await super.stop();
   }
 
-  static const _toggleFavoriteAction = 'toggle_favorite';
-
-  /// Android custom action that removes the active track from favorites.
-  static final _favoriteControl = MediaControl.custom(
-    androidIcon: 'drawable/ic_notification_favorite',
-    label: 'Remove from favorites',
-    name: _toggleFavoriteAction,
-    extras: const {'androidNativeNotificationAction': true},
-  );
-
-  /// Android custom action that adds the active track to favorites.
-  static final _favoriteBorderControl = MediaControl.custom(
-    androidIcon: 'drawable/ic_notification_favorite_border',
-    label: 'Add to favorites',
-    name: _toggleFavoriteAction,
-    extras: const {'androidNativeNotificationAction': true},
-  );
-
-  static const _skipPreviousControl = MediaControl(
-    androidIcon: 'drawable/ic_notif_prev_outline',
-    label: 'Previous',
-    action: MediaAction.skipToPrevious,
-  );
-
-  static const _playControl = MediaControl(
-    androidIcon: 'drawable/ic_notif_play_outline',
-    label: 'Play',
-    action: MediaAction.playPause,
-  );
-
-  static const _pauseControl = MediaControl(
-    androidIcon: 'drawable/ic_notif_pause_outline',
-    label: 'Pause',
-    action: MediaAction.playPause,
-  );
-
-  static const _skipNextControl = MediaControl(
-    androidIcon: 'drawable/ic_notif_next_outline',
-    label: 'Next',
-    action: MediaAction.skipToNext,
-  );
-
   /// Publishes track metadata and playback state for the supplied snapshot.
   void _publishSnapshot(NotificationPlaybackSnapshot snapshot) {
     _publishMediaItem(snapshot.track);
+
+    final controls = _config.controlsBuilder?.call(snapshot) ??
+        NotificationControls.defaultControls(snapshot);
+
+    final systemActions = _config.systemActionsBuilder?.call(snapshot) ??
+        const {
+          MediaAction.seek,
+          MediaAction.seekForward,
+          MediaAction.seekBackward,
+        };
+
     playbackState.add(
       PlaybackState(
-        controls: [
-          snapshot.isFavorite ? _favoriteControl : _favoriteBorderControl,
-          _skipPreviousControl,
-          snapshot.isPlaying ? _pauseControl : _playControl,
-          _skipNextControl,
-        ],
-        systemActions: const {MediaAction.seek},
+        controls: controls,
+        systemActions: systemActions,
         processingState: _toAudioProcessingState(snapshot.phase),
         playing: snapshot.isPlaying,
         updatePosition: snapshot.position,
@@ -160,12 +140,13 @@ class NotificationAudioHandler extends BaseAudioHandler {
   /// Maps the package playback phase to the audio-service processing state.
   AudioProcessingState _toAudioProcessingState(
     NotificationPlaybackPhase phase,
-  ) => switch (phase) {
-    NotificationPlaybackPhase.idle => AudioProcessingState.idle,
-    NotificationPlaybackPhase.loading => AudioProcessingState.loading,
-    NotificationPlaybackPhase.buffering => AudioProcessingState.buffering,
-    NotificationPlaybackPhase.ready => AudioProcessingState.ready,
-    NotificationPlaybackPhase.completed => AudioProcessingState.completed,
-    NotificationPlaybackPhase.error => AudioProcessingState.error,
-  };
+  ) =>
+      switch (phase) {
+        NotificationPlaybackPhase.idle => AudioProcessingState.idle,
+        NotificationPlaybackPhase.loading => AudioProcessingState.loading,
+        NotificationPlaybackPhase.buffering => AudioProcessingState.buffering,
+        NotificationPlaybackPhase.ready => AudioProcessingState.ready,
+        NotificationPlaybackPhase.completed => AudioProcessingState.completed,
+        NotificationPlaybackPhase.error => AudioProcessingState.error,
+      };
 }

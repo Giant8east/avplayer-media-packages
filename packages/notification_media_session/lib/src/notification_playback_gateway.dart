@@ -5,7 +5,7 @@ import 'notification_playback_snapshot.dart';
 /// Implementations publish playback snapshots and execute commands received
 /// from platform media controls. Business rules and player-specific behavior
 /// remain in the host application.
-abstract interface class NotificationPlaybackGateway {
+abstract class NotificationPlaybackGateway {
   /// Emits a snapshot whenever system media-session state may need updating.
   Stream<NotificationPlaybackSnapshot> get snapshots;
 
@@ -32,4 +32,13 @@ abstract interface class NotificationPlaybackGateway {
 
   /// Stops playback and clears host-managed playback state as appropriate.
   Future<void> stop();
+
+  /// Handles custom actions triggered from platform media controls.
+  ///
+  /// By default, returns `null`. Override this method to handle custom
+  /// actions added via [NotificationMediaSessionConfig.controlsBuilder].
+  Future<dynamic> onCustomAction(
+    String name, [
+    Map<String, dynamic>? extras,
+  ]) async => null;
 }
