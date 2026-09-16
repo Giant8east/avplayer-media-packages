@@ -1,6 +1,6 @@
 name: notification_media_session
 description: A cross-platform system media session bridge for Flutter players.
-version: 0.2.2
+version: 0.2.3
 homepage: https://github.com/Giant8east/avplayer-media-packages/tree/main/packages/notification_media_session
 repository: https://github.com/Giant8east/avplayer-media-packages
 issue_tracker: https://github.com/Giant8east/avplayer-media-packages/issues

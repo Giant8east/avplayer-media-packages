@@ -1,3 +1,8 @@
+## 0.2.3
+
+* Handle Android notification dismissal without clearing the host playback queue or cancelling the snapshot subscription.
+* Restore the system media card when playback resumes after a user dismisses it.
+
 ## 0.2.2
 
 * Set `spacedControls` (`[Previous, Spacer, Play/Pause, Spacer, Next]`) as the default controls layout when `controlsBuilder` is omitted to fill the 5-slot Android notification grid evenly.

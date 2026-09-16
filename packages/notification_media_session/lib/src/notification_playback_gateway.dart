@@ -35,6 +35,16 @@ abstract class NotificationPlaybackGateway {
   /// Stops playback and clears host-managed playback state as appropriate.
   Future<void> stop();
 
+  /// Handles Android notification dismissal without clearing host playback state.
+  ///
+  /// The default behavior pauses playback and resets its position through the
+  /// existing gateway commands. Hosts may override this to update additional
+  /// application state while retaining the active item and queue.
+  Future<void> onNotificationDeleted() async {
+    await pause();
+    await seek(Duration.zero);
+  }
+
   /// Handles custom actions triggered from platform media controls.
   ///
   /// By default, returns `null`. Override this method to handle custom

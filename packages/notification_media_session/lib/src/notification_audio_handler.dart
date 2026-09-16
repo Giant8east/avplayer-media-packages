@@ -16,18 +16,19 @@ class NotificationAudioHandler extends BaseAudioHandler {
   NotificationAudioHandler(
     this._gateway, {
     NotificationMediaSessionConfig? config,
-  }) : _config = config ??
-            const NotificationMediaSessionConfig(
-              androidNotificationChannelId: 'default',
-              androidNotificationChannelName: 'Playback',
-            ) {
-    _snapshotSubscription = _gateway.snapshots.listen(_publishSnapshot);
+  }) : _config =
+           config ??
+           const NotificationMediaSessionConfig(
+             androidNotificationChannelId: 'default',
+             androidNotificationChannelName: 'Playback',
+           ) {
+    _gateway.snapshots.listen(_publishSnapshot);
   }
 
   final NotificationPlaybackGateway _gateway;
   final NotificationMediaSessionConfig _config;
-  late final StreamSubscription<NotificationPlaybackSnapshot>
-      _snapshotSubscription;
+  bool _notificationDismissed = false;
+  bool _waitingForDismissedPause = false;
 
   /// Publishes the latest host snapshot immediately after initialization.
   Future<void> synchronize() async {
@@ -90,28 +91,47 @@ class NotificationAudioHandler extends BaseAudioHandler {
   }
 
   @override
+  Future<void> onNotificationDeleted() async {
+    _notificationDismissed = true;
+    _waitingForDismissedPause = true;
+    await _gateway.onNotificationDeleted();
+  }
+
+  @override
   Future<void> stop() async {
     await _gateway.stop();
-    await _snapshotSubscription.cancel();
     await super.stop();
   }
 
   /// Publishes track metadata and playback state for the supplied snapshot.
   void _publishSnapshot(NotificationPlaybackSnapshot snapshot) {
+    if (_notificationDismissed) {
+      if (_waitingForDismissedPause) {
+        if (!snapshot.isPlaying) {
+          _waitingForDismissedPause = false;
+        }
+        return;
+      }
+      if (!snapshot.isPlaying) return;
+      _notificationDismissed = false;
+    }
+
     _publishMediaItem(snapshot.track);
 
-    final controls = _config.controlsBuilder?.call(snapshot) ??
+    final controls =
+        _config.controlsBuilder?.call(snapshot) ??
         NotificationControls.defaultControls(snapshot);
 
-    final systemActions = _config.systemActionsBuilder?.call(snapshot) ??
+    final systemActions =
+        _config.systemActionsBuilder?.call(snapshot) ??
         const {
           MediaAction.seek,
           MediaAction.seekForward,
           MediaAction.seekBackward,
         };
 
-    final compactIndices = _config.androidCompactActionIndicesBuilder
-            ?.call(snapshot, controls) ??
+    final compactIndices =
+        _config.androidCompactActionIndicesBuilder?.call(snapshot, controls) ??
         _defaultCompactIndices(controls);
 
     playbackState.add(
@@ -133,17 +153,15 @@ class NotificationAudioHandler extends BaseAudioHandler {
     final nonSpacerIndices = <int>[];
     for (var i = 0; i < controls.length; i++) {
       final control = controls[i];
-      final isSpacer = control.androidIcon == 'drawable/ic_notif_spacer' ||
+      final isSpacer =
+          control.androidIcon == 'drawable/ic_notif_spacer' ||
           control.customAction?.name == NotificationControls.noopSpacerAction;
       if (!isSpacer) {
         nonSpacerIndices.add(i);
       }
     }
     if (nonSpacerIndices.isEmpty) {
-      return List.generate(
-        controls.length > 3 ? 3 : controls.length,
-        (i) => i,
-      );
+      return List.generate(controls.length > 3 ? 3 : controls.length, (i) => i);
     }
     return nonSpacerIndices.take(3).toList();
   }
@@ -168,13 +186,12 @@ class NotificationAudioHandler extends BaseAudioHandler {
   /// Maps the package playback phase to the audio-service processing state.
   AudioProcessingState _toAudioProcessingState(
     NotificationPlaybackPhase phase,
-  ) =>
-      switch (phase) {
-        NotificationPlaybackPhase.idle => AudioProcessingState.idle,
-        NotificationPlaybackPhase.loading => AudioProcessingState.loading,
-        NotificationPlaybackPhase.buffering => AudioProcessingState.buffering,
-        NotificationPlaybackPhase.ready => AudioProcessingState.ready,
-        NotificationPlaybackPhase.completed => AudioProcessingState.completed,
-        NotificationPlaybackPhase.error => AudioProcessingState.error,
-      };
+  ) => switch (phase) {
+    NotificationPlaybackPhase.idle => AudioProcessingState.idle,
+    NotificationPlaybackPhase.loading => AudioProcessingState.loading,
+    NotificationPlaybackPhase.buffering => AudioProcessingState.buffering,
+    NotificationPlaybackPhase.ready => AudioProcessingState.ready,
+    NotificationPlaybackPhase.completed => AudioProcessingState.completed,
+    NotificationPlaybackPhase.error => AudioProcessingState.error,
+  };
 }
